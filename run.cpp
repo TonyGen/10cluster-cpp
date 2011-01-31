@@ -51,7 +51,9 @@ static void runRoutine (map <string, boost::shared_ptr<clusterRun::Routine> > ro
 	try {
 		map <string, boost::shared_ptr<clusterRun::Routine> > :: iterator routine = routines.find (routineName);
 		if (routine == routines.end()) {
-			cout << "Routine " << routineName << " not found." << endl;
+			cout << "Routine " << routineName << " not found. Available routines are:" << endl;
+			for (map <string, boost::shared_ptr<clusterRun::Routine> > :: iterator r = routines.begin(); r != routines.end(); ++r)
+				cout << "  " << r->first << endl;
 			exit (-1);
 		}
 		cout << routineName << " running. Wait for 'SUCCESS' or 'FAILURE' to be printed." << endl;
@@ -81,7 +83,7 @@ static int workerMain (vector <string> args) {
 	while (true) sleep (600);
 }
 
-static void printUsage (string program) {
+static void printUsage (string program, map <string, boost::shared_ptr<clusterRun::Routine> > routines) {
 	cout << "usage: " << program << " Seed (Controller | Worker)" << endl;
 	cout << " where:" << endl;
 	cout << "  Seed = seed for random # generator. Same seed # will produce same sequence of random #s." << endl;
@@ -95,7 +97,9 @@ static void printUsage (string program) {
 	cout << "  Host = Hostname[/(c|s)]" << endl;
 	cout << "   c means client, s means server, neither means both" << endl;
 	cout << "   eg: localhost,1.2.3.4/c,foo.net/s" << endl;
-	cout << "  Routine = name of routine to run, selected from routines() in Main.cpp" << endl;
+	cout << "  Routine = name of routine to run, one of:" << endl;
+	for (map <string, boost::shared_ptr<clusterRun::Routine> > :: iterator r = routines.begin(); r != routines.end(); ++r)
+		cout << "   " << r->first << endl;
 }
 
 int clusterRun::main (map <string, boost::shared_ptr<Routine> > routines, int argc, char* argv[]) {
@@ -104,7 +108,7 @@ int clusterRun::main (map <string, boost::shared_ptr<Routine> > routines, int ar
 	vector<string> args = argsVector (argc, argv);
 	if (argc == 5 && args[2] == "controller") return controllerMain (routines, args);
 	if (argc == 3 && args[2] == "worker") return workerMain (args);
-	printUsage (argv[0]);
+	printUsage (argv[0], routines);
 	return -1;
 }
 
