@@ -30,7 +30,7 @@ remote::Host someClient();
 /** Return the next N cluster clients in cycle */
 std::vector<remote::Host> someClients (unsigned n);
 
-/** Start procedure thread on N clients, recycling clients if necessary. Use supervisor thread so if any client threads die, all will dies, and this main thread will receive an exception. The client enumeration is supplied to each client procedure.
+/** Procedure on N clients, recycling clients if necessary. The client enumeration is supplied to each client procedure.
  * P type: void P (unsigned), string P.serialize(), string P.toString() */
 template <template <typename,typename> class P> std::vector< std::pair< remote::Host, boost::function0<void> > > clientActs (unsigned numClients, P<void,unsigned> procedure) {
 	std::vector<remote::Host> hosts = cycle (numClients, cluster::clients);
