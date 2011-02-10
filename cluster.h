@@ -19,7 +19,16 @@ void listen();
 void members (std::vector<remote::Host> clients, std::vector<remote::Host> servers);
 
 /** Return the next cluster server in cycle */
-remote::Host someServer ();
+remote::Host someServer();
+
+/** Return the next N cluster servers in cycle */
+std::vector<remote::Host> someServers (unsigned n);
+
+/** Return the next cluster client in cycle */
+remote::Host someClient();
+
+/** Return the next N cluster clients in cycle */
+std::vector<remote::Host> someClients (unsigned n);
 
 /** Start procedure thread on N clients, recycling clients if necessary. Use supervisor thread so if any client threads die, all will dies, and this main thread will receive an exception. The client enumeration is supplied to each client procedure.
  * P type: void P (unsigned), string P.serialize(), string P.toString() */

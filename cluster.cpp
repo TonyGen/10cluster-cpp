@@ -44,3 +44,23 @@ remote::Host cluster::someServer () {
 	if (nextServerIdx >= c) nextServerIdx = 0;
 	return servers [nextServerIdx ++];
 }
+
+/** Return the next N cluster servers in cycle */
+std::vector<remote::Host> cluster::someServers (unsigned n) {
+	return repeat (n, someServer);
+}
+
+static unsigned nextClientIdx;
+
+/** Return the next cluster server in cycle */
+remote::Host cluster::someClient () {
+	unsigned c = clients.size();
+	if (c == 0) throw std::runtime_error ("no clients in cluster");
+	if (nextClientIdx >= c) nextClientIdx = 0;
+	return clients [nextClientIdx ++];
+}
+
+/** Return the next N cluster clients in cycle */
+std::vector<remote::Host> cluster::someClients (unsigned n) {
+	return repeat (n, someClient);
+}
