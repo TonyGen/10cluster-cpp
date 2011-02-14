@@ -1,10 +1,17 @@
 /* */
 
 #include "cluster.h"
-#include <set>
 
 std::vector<remote::Host> cluster::clients;
 std::vector<remote::Host> cluster::servers;
+
+/** Clients and servers in cluster, removing duplicates */
+std::set<remote::Host> cluster::machines() {
+	std::set<remote::Host> machines;
+	for (unsigned i = 0; i < clients.size(); i++) machines.insert (clients[i]);
+	for (unsigned i = 0; i < servers.size(); i++) machines.insert (servers[i]);
+	return machines;
+}
 
 namespace _cluster {
 void setMembers (std::vector<remote::Host> clients, std::vector<remote::Host> servers) {
@@ -26,10 +33,8 @@ void cluster::listen() {
 /** Broadcast the set of machines in the cluster to all the machines so they know about each other */
 void cluster::members (std::vector<remote::Host> clients, std::vector<remote::Host> servers) {
 	_cluster::setMembers (clients, servers);
-	std::set<remote::Host> machines;
-	for (unsigned i = 0; i < clients.size(); i++) machines.insert (clients[i]);
-	for (unsigned i = 0; i < servers.size(); i++) machines.insert (servers[i]);
-	for (std::set<remote::Host>::iterator it = machines.begin(); it != machines.end(); ++it) {
+	std::set<remote::Host> hosts = machines();
+	for (std::set<remote::Host>::iterator it = hosts.begin(); it != hosts.end(); ++it) {
 		boost::function0<void> install = boost::bind (PROCEDURE2 (_cluster::setMembers), clients, servers);
 		remote::remotely (*it, install);
 	}

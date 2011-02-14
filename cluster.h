@@ -3,14 +3,21 @@
 #ifndef CLUSTER_H_
 #define CLUSTER_H_
 
+#include <set>
 #include <vector>
 #include <util/util.h>
 #include <remote/remote.h>
 
 namespace cluster {
 
+/** Client machines in cluster. A machine may be both a client and server machine */
 extern std::vector<remote::Host> clients;
+
+/** Server machines in cluster. A machine may be both a client and server machine */
 extern std::vector<remote::Host> servers;
+
+/** All machines in cluster (clients and servers), removing duplicates */
+std::set<remote::Host> machines();
 
 /** Start listening for network messages so we can be told the set of machines in my cluster by the controller */
 void listen();
