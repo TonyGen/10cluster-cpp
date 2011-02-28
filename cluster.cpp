@@ -14,9 +14,10 @@ std::set<remote::Host> cluster::machines() {
 }
 
 namespace _cluster {
-void setMembers (std::vector<remote::Host> clients, std::vector<remote::Host> servers) {
+Unit setMembers (std::vector<remote::Host> clients, std::vector<remote::Host> servers) {
 	cluster::clients = clients;
 	cluster::servers = servers;
+	return unit;
 }
 }
 
