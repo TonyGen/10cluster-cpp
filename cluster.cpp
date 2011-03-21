@@ -36,8 +36,7 @@ void cluster::members (std::vector<remote::Host> clients, std::vector<remote::Ho
 	_cluster::setMembers (clients, servers);
 	std::set<remote::Host> hosts = machines();
 	for (std::set<remote::Host>::iterator it = hosts.begin(); it != hosts.end(); ++it) {
-		boost::function0<void> install = boost::bind (PROCEDURE2 (_cluster::setMembers), clients, servers);
-		remote::remotely (*it, install);
+		remote::remotely (*it, action0 (PROCEDURE2 (_cluster::setMembers), clients, servers));
 	}
 }
 
