@@ -26,9 +26,9 @@ static void registerProcedures () {
 }
 
 /** Start listening for network messages so we can be told the set of machines in my cluster by the controller */
-void cluster::listen() {
+boost::shared_ptr <boost::thread> cluster::listen() {
 	registerProcedures();
-	remote::listen();
+	return remote::listen();
 }
 
 /** Broadcast the set of machines in the cluster to all the machines so they know about each other */

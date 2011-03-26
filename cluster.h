@@ -19,8 +19,9 @@ extern std::vector<remote::Host> servers;
 /** All machines in cluster (clients and servers), removing duplicates */
 std::set<remote::Host> machines();
 
-/** Start listening for network messages so we can be told the set of machines in my cluster by the controller */
-void listen();
+/** Start listening for network messages so we can be told the set of machines in my cluster by the controller.
+ * Return listener thread, which you may terminate */
+boost::shared_ptr <boost::thread> listen();
 
 /** Broadcast the set of machines in the cluster to all the machines so they know about each other */
 void members (std::vector<remote::Host> clients, std::vector<remote::Host> servers);
