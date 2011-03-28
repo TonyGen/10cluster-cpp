@@ -22,7 +22,7 @@ Unit setMembers (std::vector<remote::Host> clients, std::vector<remote::Host> se
 }
 
 static void registerProcedures () {
-	REGISTER_PROCEDURE2 (_cluster::setMembers);
+	REGISTER_PROCEDURE (_cluster::setMembers);
 }
 
 /** Start listening for network messages so we can be told the set of machines in my cluster by the controller */
@@ -36,7 +36,7 @@ void cluster::members (std::vector<remote::Host> clients, std::vector<remote::Ho
 	_cluster::setMembers (clients, servers);
 	std::set<remote::Host> hosts = machines();
 	for (std::set<remote::Host>::iterator it = hosts.begin(); it != hosts.end(); ++it) {
-		remote::remotely (*it, action0 (PROCEDURE2 (_cluster::setMembers), clients, servers));
+		remote::remotely (*it, PROCEDURE(_cluster::setMembers) (clients) (servers));
 	}
 }
 
