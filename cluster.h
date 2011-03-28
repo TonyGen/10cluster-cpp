@@ -21,7 +21,7 @@ std::set<remote::Host> machines();
 
 /** Start listening for network messages so we can be told the set of machines in my cluster by the controller.
  * Return listener thread, which you may terminate */
-boost::shared_ptr <boost::thread> listen();
+boost::shared_ptr <boost::thread> listen (unsigned short port = remote::DefaultPort);
 
 /** Broadcast the set of machines in the cluster to all the machines so they know about each other */
 void members (std::vector<remote::Host> clients, std::vector<remote::Host> servers);
@@ -37,16 +37,6 @@ remote::Host someClient();
 
 /** Return the next N cluster clients in cycle */
 std::vector<remote::Host> someClients (unsigned n);
-
-/** Procedure on N clients, recycling clients if necessary. The client enumeration is supplied to each client procedure.
- * P type: void P (unsigned), string P.serialize(), string P.toString() */
-template <template <typename,typename> class P> std::vector< std::pair< remote::Host, Action0<Unit> > > clientActs (unsigned numClients, P<Unit,unsigned> procedure) {
-	std::vector<remote::Host> hosts = cycle (numClients, cluster::clients);
-	std::vector< std::pair< remote::Host, Action0<Unit> > > hostActs;
-	for (unsigned i = 0; i < hosts.size(); i++)
-		hostActs.push_back (std::make_pair (hosts[i], action0 (procedure, i)));
-	return hostActs;
-}
 
 }
 

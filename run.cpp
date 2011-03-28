@@ -38,14 +38,6 @@ static pair< vector<remote::Host>, vector<remote::Host> > parseHosts (string hos
 	return make_pair (clients, servers);
 }
 
-/** Parse integer out of given string */
-static int parseInt (string s) {
-	stringstream ss (s);
-	int num;
-	if ((ss >> num).fail()) throw runtime_error ("expected " + s + " to be an integer");
-	return num;
-}
-
 /** Run named routine. If it fails print the failure, otherwise print success */
 static void runRoutine (map <string, boost::shared_ptr<clusterRun::Routine> > routines, string routineName) {
 	try {
@@ -66,48 +58,57 @@ static void runRoutine (map <string, boost::shared_ptr<clusterRun::Routine> > ro
 
 /** Main procedure for controller, there should be just one controller in the network */
 static int controllerMain (map <string, boost::shared_ptr<clusterRun::Routine> > routines, vector <string> args) {
-	srand (parseInt (args[1]));
 	cout << "Controller running." << endl;
-	pair< vector<remote::Host>, vector<remote::Host> > clientsServers = parseHosts (args[3]);
+	pair< vector<remote::Host>, vector<remote::Host> > clientsServers = parseHosts (args[1]);
 	cluster::members (clientsServers.first, clientsServers.second);
-	runRoutine (routines, args[4]);
+	runRoutine (routines, args[2]);
 	cout << "End with Ctrl-c (SIGINT). Causes processes spawned on this machine to terminate as well." << endl;
 	while (true) sleep (600);
 }
 
 /** Main procedure for worker machines in the network. This should run on every machine in the network except the controller. */
 static int workerMain (vector <string> args) {
-	srand (parseInt (args[1]));
 	cout << "Worker running." << endl;
 	cout << "End with Ctrl-c (SIGINT). Causes processes spawned on this machine to terminate as well." << endl;
 	while (true) sleep (600);
 }
 
 static void printUsage (string program, map <string, boost::shared_ptr<clusterRun::Routine> > routines) {
-	cout << "usage: " << program << " Seed (Controller | Worker)" << endl;
+	cout << "usage: " << program << " RandomSeed ListenPort (Worker | Controller)" << endl;
 	cout << " where:" << endl;
-	cout << "  Seed = seed for random # generator. Same seed # will produce same sequence of random #s." << endl;
+	cout << "  RandomSeed = seed for random # generator. Same seed # will produce same sequence of random #s." << endl;
 	cout << "   useful for reproducing the same sequence of actions" << endl;
-	cout << "  Controller = controller Host,Host,... Routine" << endl;
-	cout << "   the controller spawns threads and processes on listed worker machines." << endl;
-	cout << "   the controller machine may also be a worker machine. no space between hosts." << endl;
-	cout << "  Worker = worker" << endl;
+	cout << "  ListenPort = port to listen on. 0 means use default port (52348)" << endl;
+	cout << "  Worker = 'worker'" << endl;
 	cout << "   a worker machine is as a client, server, or both." << endl;
 	cout << "   run this on all worker machines except the controller machine." << endl;
-	cout << "  Host = Hostname[/(c|s)]" << endl;
-	cout << "   c means client, s means server, neither means both" << endl;
-	cout << "   eg: localhost,1.2.3.4/c,foo.net/s" << endl;
+	cout << "  Controller = 'controller' Host,Host,... Routine" << endl;
+	cout << "   no space between hosts." << endl;
+	cout << "   the controller spawns threads and processes on listed worker machines." << endl;
+	cout << "   the controller machine may also be a worker machine." << endl;
+	cout << "  Host = Hostname[:Port]['/'('c'|'s')]" << endl;
+	cout << "   no Port means the default port (52348)" << endl;
+	cout << "   'c' means client, 's' means server, neither means both" << endl;
+	cout << "   eg: localhost,1.2.3.4:2222/c,foo.net/s" << endl;
 	cout << "  Routine = name of routine to run, one of:" << endl;
 	for (map <string, boost::shared_ptr<clusterRun::Routine> > :: iterator r = routines.begin(); r != routines.end(); ++r)
 		cout << "   " << r->first << endl;
+	cout << " examples:" << endl;
+	cout << " > " << program << " 666 0 worker" << endl;
+	cout << " > " << program << " 666 0 controller machine1/c,machine2 mongoTest::Simple" << endl;
 }
 
 int clusterRun::main (map <string, boost::shared_ptr<Routine> > routines, int argc, char* argv[]) {
 	registerRoutineProcedures (routines);
-	cluster::listen();
 	vector<string> args = argsVector (argc, argv);
-	if (argc == 5 && args[2] == "controller") return controllerMain (routines, args);
-	if (argc == 3 && args[2] == "worker") return workerMain (args);
+	if (argc > 2) {
+		srand (parse_string<int> (args[1]));
+		unsigned short port = parse_string <unsigned short> (args[2]);
+		if (port == 0) cluster::listen(); else cluster::listen (port);
+		args.erase (args.begin(), args.begin() + 3);
+		if (args.size() == 1 && args[0] == "worker") return workerMain (args);
+		if (args.size() == 3 && args[0] == "controller") return controllerMain (routines, args);
+	}
 	printUsage (argv[0], routines);
 	return -1;
 }
