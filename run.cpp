@@ -52,7 +52,7 @@ static void runRoutine (map <string, boost::shared_ptr<clusterRun::Routine> > ro
 		(* routine->second) ();
 		cout << "SUCCESS." << endl;
 	} catch (exception &e) {
-		cout << "FAILURE: " << e.what() << endl;
+		cout << "FAILURE: (" << typeid(e).name() << ") " << e.what() << endl;
 	}
 }
 
