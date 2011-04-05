@@ -9,6 +9,7 @@
 #include <10util/util.h>
 #include "cluster.h"
 #include "run.h"
+#include <execinfo.h>
 
 using namespace std;
 
@@ -53,6 +54,10 @@ static void runRoutine (map <string, boost::shared_ptr<clusterRun::Routine> > ro
 		cout << "SUCCESS." << endl;
 	} catch (exception &e) {
 		cout << "FAILURE: (" << typeid(e).name() << ") " << e.what() << endl;
+		void *array[30];
+		size_t size;
+		size = backtrace (array, 30);  // get void*'s for all entries on the stack
+		backtrace_symbols_fd (array, size, 2);  // print out all the frames to stderr
 	}
 }
 
