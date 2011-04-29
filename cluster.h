@@ -1,11 +1,8 @@
-/* Set of machines in my cluster. */
+/* Register set of machines in my cluster. */
 
-#ifndef CLUSTER_H_
-#define CLUSTER_H_
+#pragma once
 
-#include <set>
 #include <vector>
-#include <10util/util.h>
 #include <remote/remote.h>
 
 namespace cluster {
@@ -39,5 +36,3 @@ remote::Host someClient();
 std::vector<remote::Host> someClients (unsigned n);
 
 }
-
-#endif /* CLUSTER_H_ */
