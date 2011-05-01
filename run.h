@@ -1,7 +1,6 @@
-/* */
+/* A cluster routine may get arbitrary machines in the cluster and run processes and threads on them */
 
-#ifndef CLUSTERRUN_H_
-#define CLUSTERRUN_H_
+#pragma once
 
 #include <string>
 #include <map>
@@ -23,5 +22,3 @@ public:
 int main (std::map <std::string, boost::shared_ptr<Routine> > routines, int argc, char* argv[]);
 
 }
-
-#endif /* CLUSTERRUN_H_ */
