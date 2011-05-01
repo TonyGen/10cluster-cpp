@@ -8,8 +8,8 @@
 
 namespace clusterRun {
 
-/** Assumes 'routines' is a map in scope */
-#define ROUTINE(routineClass) routines[#routineClass] = boost::shared_ptr<clusterRun::Routine> (new routineClass)
+/** pair with key = routine name and value = ptr to routine instance: pair< string, boost::shared_ptr<Routine> > */
+#define ROUTINE(routineClass) make_pair (#routineClass, boost::shared_ptr<clusterRun::Routine> (new routineClass))
 
 /** A routine has a function that may perform remote procedure calls, and a function that registers procedures as remote. This register function must be executed on every target machine. */
 class Routine {

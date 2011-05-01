@@ -83,7 +83,7 @@ static void printUsage (string program, map <string, boost::shared_ptr<clusterRu
 	cout << " where:" << endl;
 	cout << "  RandomSeed = seed for random # generator. Same seed # will produce same sequence of random #s." << endl;
 	cout << "   useful for reproducing the same sequence of actions" << endl;
-	cout << "  ListenPort = port to listen on. 0 means use default port (52348)" << endl;
+	cout << "  ListenPort = port to listen on. 0 means use default port " << remote::DefaultPort << endl;
 	cout << "  Worker = 'worker'" << endl;
 	cout << "   a worker machine is as a client, server, or both." << endl;
 	cout << "   run this on all worker machines except the controller machine." << endl;
@@ -92,7 +92,7 @@ static void printUsage (string program, map <string, boost::shared_ptr<clusterRu
 	cout << "   the controller spawns threads and processes on listed worker machines." << endl;
 	cout << "   the controller machine may also be a worker machine." << endl;
 	cout << "  Host = Hostname[:Port]['/'('c'|'s')]" << endl;
-	cout << "   no Port means the default port (52348)" << endl;
+	cout << "   no Port means the default port " << remote::DefaultPort << endl;
 	cout << "   'c' means client, 's' means server, neither means both" << endl;
 	cout << "   eg: localhost,1.2.3.4:2222/c,foo.net/s" << endl;
 	cout << "  Routine = name of routine to run, one of:" << endl;
