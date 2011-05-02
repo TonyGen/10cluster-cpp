@@ -79,11 +79,11 @@ static int workerMain (vector <string> args) {
 }
 
 static void printUsage (string program, map <string, boost::shared_ptr<clusterRun::Routine> > routines) {
-	cout << "usage: " << program << " RandomSeed ListenPort (Worker | Controller)" << endl;
+	cout << "usage: " << program << " RandomSeed MyHost (Worker | Controller)" << endl;
 	cout << " where:" << endl;
 	cout << "  RandomSeed = seed for random # generator. Same seed # will produce same sequence of random #s." << endl;
 	cout << "   useful for reproducing the same sequence of actions" << endl;
-	cout << "  ListenPort = port to listen on. 0 means use default port " << remote::DefaultPort << endl;
+	cout << "  MyHost = Hostname[:Port] to listen on. no port means use default port " << remote::DefaultPort << endl;
 	cout << "  Worker = 'worker'" << endl;
 	cout << "   a worker machine is as a client, server, or both." << endl;
 	cout << "   run this on all worker machines except the controller machine." << endl;
@@ -108,8 +108,9 @@ int clusterRun::main (map <string, boost::shared_ptr<Routine> > routines, int ar
 	vector<string> args = argsVector (argc, argv);
 	if (argc > 2) {
 		srand (parse_string<int> (args[1]));
-		unsigned short port = parse_string <unsigned short> (args[2]);
-		if (port == 0) cluster::listen(); else cluster::listen (port);
+		network::HostPort hostPort = remote::hostPort (args[2]);
+		network::initMyHostname (hostPort.hostname);
+		cluster::listen (hostPort.port);
 		args.erase (args.begin(), args.begin() + 3);
 		if (args.size() == 1 && args[0] == "worker") return workerMain (args);
 		if (args.size() == 3 && args[0] == "controller") return controllerMain (routines, args);
