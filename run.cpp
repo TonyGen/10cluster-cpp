@@ -99,8 +99,8 @@ static void printUsage (string program, map <string, boost::shared_ptr<clusterRu
 	for (map <string, boost::shared_ptr<clusterRun::Routine> > :: iterator r = routines.begin(); r != routines.end(); ++r)
 		cout << "   " << r->first << endl;
 	cout << " examples:" << endl;
-	cout << " > " << program << " 666 0 worker" << endl;
-	cout << " > " << program << " 666 0 controller machine1/c,machine2 mongoTest::Simple" << endl;
+	cout << " host1> " << program << " 666 host1 worker" << endl;
+	cout << " host2> " << program << " 666 host2 controller host1,host2 mongoTest::Foo" << endl;
 }
 
 int clusterRun::main (map <string, boost::shared_ptr<Routine> > routines, int argc, char* argv[]) {
