@@ -6,7 +6,7 @@
 #include <vector>
 #include <map>
 #include <boost/algorithm/string.hpp>
-#include <10util/util.h>
+#include <10util/util.h> // typeName, ...
 #include "cluster.h"
 #include "run.h"
 #include <execinfo.h>
@@ -53,7 +53,7 @@ static void runRoutine (map <string, boost::shared_ptr<clusterRun::Routine> > ro
 		(* routine->second) ();
 		cout << "SUCCESS." << endl;
 	} catch (exception &e) {
-		cout << "FAILURE: (" << typeid(e).name() << ") " << e.what() << endl;
+		cout << "FAILURE: (" << typeName(e) << ") " << e.what() << endl;
 		void *array[30];
 		size_t size;
 		size = backtrace (array, 30);  // get void*'s for all entries on the stack
