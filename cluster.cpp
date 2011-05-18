@@ -1,4 +1,3 @@
-/* */
 
 #include "cluster.h"
 #include <10util/unit.h>
@@ -23,24 +22,30 @@ Unit setMembers (std::vector<remote::Host> clients, std::vector<remote::Host> se
 }
 }
 
-static void registerProcedures () {
-	registerFun (FUN(_cluster::setMembers));
-}
-
-/** Start listening for network messages so we can be told the set of machines in my cluster by the controller */
-boost::shared_ptr <boost::thread> cluster::listen (unsigned short port) {
-	registerProcedures();
-	return remote::listen (port);
-}
-
 /** Broadcast the set of machines in the cluster to all the machines so they know about each other */
 void cluster::members (std::vector<remote::Host> clients, std::vector<remote::Host> servers) {
 	_cluster::setMembers (clients, servers);
 	std::set<remote::Host> hosts = machines();
-	for (std::set<remote::Host>::iterator it = hosts.begin(); it != hosts.end(); ++it) {
+	for (std::set<remote::Host>::iterator it = hosts.begin(); it != hosts.end(); ++it)
 		remote::eval (*it, thunk (FUN(_cluster::setMembers), clients, servers));
-	}
 }
+
+/** Tell all machines in cluster to load given library */
+void cluster::load (library::Libname libname) {
+	library::load_ (libname);
+	std::set<remote::Host> hosts = cluster::machines();
+	for (std::set<remote::Host>::iterator it = hosts.begin(); it != hosts.end(); ++it)
+		remote::eval (*it, thunk (FUN(library::load_), libname));
+}
+
+static void registerProcedures () {
+	registerFun (FUN(_cluster::setMembers));
+	registerFun (FUN(library::load_));
+}
+
+INITIALIZE (
+	registerProcedures();
+)
 
 static unsigned nextServerIdx;
 

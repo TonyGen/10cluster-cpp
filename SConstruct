@@ -1,8 +1,10 @@
 libname = 'cluster'
 
-lib = Library (libname, Glob('*.cpp'),
+lib = SharedLibrary (libname, Glob('*.cpp'),
 	CCFLAGS = ['-g'],
-	CPPPATH = ['.', '/opt/local/include'])
+	CPPPATH = ['.', '/opt/local/include'],
+	LIBPATH = ['/opt/local/lib'],
+	LIBS = Split ('10util remote boost_serialization-mt') )
 
 Alias ('install', '/usr/local')
 Install ('/usr/local/lib', lib)

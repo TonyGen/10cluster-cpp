@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <remote/remote.h>
+#include <10util/library.h>
 
 namespace cluster {
 
@@ -16,12 +17,11 @@ extern std::vector<remote::Host> servers;
 /** All machines in cluster (clients and servers), removing duplicates */
 std::set<remote::Host> machines();
 
-/** Start listening for network messages so we can be told the set of machines in my cluster by the controller.
- * Return listener thread, which you may terminate */
-boost::shared_ptr <boost::thread> listen (unsigned short port = remote::DefaultPort);
-
 /** Broadcast the set of machines in the cluster to all the machines so they know about each other */
 void members (std::vector<remote::Host> clients, std::vector<remote::Host> servers);
+
+/** Tell all machines in cluster to load given library */
+void load (library::Libname libname);
 
 /** Return the next cluster server in cycle */
 remote::Host someServer();
