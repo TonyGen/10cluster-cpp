@@ -23,6 +23,9 @@ void members (std::vector<remote::Host> clients, std::vector<remote::Host> serve
 /** Tell all machines in cluster to load given library */
 void load (library::Libname libname);
 
+/** Tell all machines in cluster to reset its random number generator with given seed */
+void seedRandom (int seed);
+
 /** Return the next cluster server in cycle */
 remote::Host someServer();
 

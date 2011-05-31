@@ -2,6 +2,7 @@
 #include "cluster.h"
 #include <10util/unit.h>
 #include <set>
+#include <cstdlib> // srand
 
 std::vector<remote::Host> cluster::clients;
 std::vector<remote::Host> cluster::servers;
@@ -38,9 +39,21 @@ void cluster::load (library::Libname libname) {
 		remote::eval (*it, thunk (FUN(library::load_), libname));
 }
 
+namespace _cluster {
+void setRandomSeed (int seed) {srand (seed);}
+}
+
+/** Tell all machines in cluster to reset its random number generator with given seed */
+void cluster::seedRandom (int seed) {
+	std::set<remote::Host> hosts = cluster::machines();
+	for (std::set<remote::Host>::iterator it = hosts.begin(); it != hosts.end(); ++it)
+		remote::eval (*it, thunk (FUN(_cluster::setRandomSeed), seed));
+}
+
 static void registerProcedures () {
 	registerFun (FUN(_cluster::setMembers));
 	registerFun (FUN(library::load_));
+	registerFun (FUN(_cluster::setRandomSeed));
 }
 
 INITIALIZE (
