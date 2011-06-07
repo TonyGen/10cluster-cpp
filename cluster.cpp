@@ -4,6 +4,8 @@
 #include <set>
 #include <cstdlib> // srand
 
+remote::Module _cluster::module ("cluster", "cluster/cluster.h");
+
 std::vector<remote::Host> cluster::clients;
 std::vector<remote::Host> cluster::servers;
 
@@ -15,12 +17,9 @@ std::set<remote::Host> cluster::machines() {
 	return machines;
 }
 
-namespace _cluster {
-Unit setMembers (std::vector<remote::Host> clients, std::vector<remote::Host> servers) {
+void _cluster::setMembers (std::vector<remote::Host> clients, std::vector<remote::Host> servers) {
 	cluster::clients = clients;
 	cluster::servers = servers;
-	return unit;
-}
 }
 
 /** Broadcast the set of machines in the cluster to all the machines so they know about each other */
@@ -28,37 +27,27 @@ void cluster::members (std::vector<remote::Host> clients, std::vector<remote::Ho
 	_cluster::setMembers (clients, servers);
 	std::set<remote::Host> hosts = machines();
 	for (std::set<remote::Host>::iterator it = hosts.begin(); it != hosts.end(); ++it)
-		remote::eval (*it, thunk (FUN(_cluster::setMembers), clients, servers));
+		remote::eval (*it, remote::thunk (MFUN(_cluster,setMembers), clients, servers));
 }
+
+void _cluster::load (library::Libname libname) {library::load_ (libname);}
 
 /** Tell all machines in cluster to load given library */
 void cluster::load (library::Libname libname) {
 	library::load_ (libname);
 	std::set<remote::Host> hosts = cluster::machines();
 	for (std::set<remote::Host>::iterator it = hosts.begin(); it != hosts.end(); ++it)
-		remote::eval (*it, thunk (FUN(library::load_), libname));
+		remote::eval (*it, thunk (MFUN(_cluster,load), libname));
 }
 
-namespace _cluster {
-void setRandomSeed (int seed) {srand (seed);}
-}
+void _cluster::setRandomSeed (int seed) {srand (seed);}
 
 /** Tell all machines in cluster to reset its random number generator with given seed */
 void cluster::seedRandom (int seed) {
 	std::set<remote::Host> hosts = cluster::machines();
 	for (std::set<remote::Host>::iterator it = hosts.begin(); it != hosts.end(); ++it)
-		remote::eval (*it, thunk (FUN(_cluster::setRandomSeed), seed));
+		remote::eval (*it, thunk (MFUN(_cluster,setRandomSeed), seed));
 }
-
-static void registerProcedures () {
-	registerFun (FUN(_cluster::setMembers));
-	registerFun (FUN(library::load_));
-	registerFun (FUN(_cluster::setRandomSeed));
-}
-
-INITIALIZE (
-	registerProcedures();
-)
 
 static unsigned nextServerIdx;
 

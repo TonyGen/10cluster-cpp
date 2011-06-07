@@ -39,3 +39,12 @@ remote::Host someClient();
 std::vector<remote::Host> someClients (unsigned n);
 
 }
+
+namespace _cluster {
+
+extern remote::Module module;
+void setMembers (std::vector<remote::Host> clients, std::vector<remote::Host> servers);
+void load (library::Libname);
+void setRandomSeed (int seed);
+
+}
