@@ -6,57 +6,65 @@
 
 remote::Module _cluster::module ("cluster", "cluster/cluster.h");
 
-std::vector<remote::Host> cluster::clients;
-std::vector<remote::Host> cluster::servers;
+/** All machines in cluster including self. Each machine may have a client and/or server role. */
+std::vector<cluster::Member> cluster::members;
 
-/** Clients and servers in cluster, removing duplicates */
-std::set<remote::Host> cluster::machines() {
-	std::set<remote::Host> machines;
-	for (unsigned i = 0; i < clients.size(); i++) machines.insert (clients[i]);
-	for (unsigned i = 0; i < servers.size(); i++) machines.insert (servers[i]);
-	return machines;
+void _cluster::addMember (cluster::Member newMember) {
+	for (std::vector<cluster::Member>::iterator m = cluster::members.begin(); m != cluster::members.end(); ++m)
+		if (m->host == newMember.host) {m->role = newMember.role; return;}
+	cluster::members.push_back (newMember);
 }
 
-void _cluster::setMembers (std::vector<remote::Host> clients, std::vector<remote::Host> servers) {
-	cluster::clients = clients;
-	cluster::servers = servers;
+void _cluster::removeMember (remote::Host host) {
+	for (std::vector<cluster::Member>::iterator m = cluster::members.begin(); m != cluster::members.end(); ++m)
+		if (m->host == host) {cluster::members.erase (m); return;}
 }
 
-/** Broadcast the set of machines in the cluster to all the machines so they know about each other */
-void cluster::members (std::vector<remote::Host> clients, std::vector<remote::Host> servers) {
-	_cluster::setMembers (clients, servers);
-	std::set<remote::Host> hosts = machines();
-	for (std::set<remote::Host>::iterator it = hosts.begin(); it != hosts.end(); ++it)
-		remote::eval (*it, remote::thunk (MFUN(_cluster,setMembers), clients, servers));
+/** Add new member to cluster, tell new member all existing members plus itself, and tell existing members about new member */
+void _cluster::newMember (cluster::Member newMember) {
+	addMember (newMember); // Add member now so when adding again below it won't mess up iterator
+	for (std::vector<cluster::Member>::iterator m = cluster::members.begin(); m != cluster::members.end(); ++m) {
+		remote::eval (m->host, remote::thunk (MFUN(_cluster,addMember), newMember));
+		remote::eval (newMember.host, remote::thunk (MFUN(_cluster,addMember), *m));
+	}
 }
 
-void _cluster::load (library::Libname libname) {library::load_ (libname);}
+/** Join cluster of machines where given host is one of them. Join as given role. */
+void cluster::join (Role role, remote::Host host) {
+	remote::eval (host, remote::thunk (MFUN(_cluster,newMember), Member (remote::thisHost(), role)));
+}
 
-/** Tell all machines in cluster to load given library */
-void cluster::load (library::Libname libname) {
-	library::load_ (libname);
-	std::set<remote::Host> hosts = cluster::machines();
-	for (std::set<remote::Host>::iterator it = hosts.begin(); it != hosts.end(); ++it)
-		remote::eval (*it, thunk (MFUN(_cluster,load), libname));
+/** Remove self from cluster of machines */
+void leave () {
+	for (std::vector<cluster::Member>::iterator m = cluster::members.begin(); m != cluster::members.end(); ++m)
+		remote::eval (m->host, remote::thunk (MFUN(_cluster,removeMember), remote::thisHost()));
+	cluster::members.clear();
 }
 
 void _cluster::setRandomSeed (int seed) {srand (seed);}
 
 /** Tell all machines in cluster to reset its random number generator with given seed */
 void cluster::seedRandom (int seed) {
-	std::set<remote::Host> hosts = cluster::machines();
-	for (std::set<remote::Host>::iterator it = hosts.begin(); it != hosts.end(); ++it)
-		remote::eval (*it, thunk (MFUN(_cluster,setRandomSeed), seed));
+	for (std::vector<cluster::Member>::iterator m = cluster::members.begin(); m != cluster::members.end(); ++m)
+		remote::eval (m->host, thunk (MFUN(_cluster,setRandomSeed), seed));
 }
 
-static unsigned nextServerIdx;
+/** Increment i wrapping when reaching size */
+static unsigned & nextWrap (unsigned size, unsigned &i) {
+	if (i >= size) i = 0; else i++;
+	return i;
+}
+
+static unsigned nextServerIdx = -1;
 
 /** Return the next cluster server in cycle */
 remote::Host cluster::someServer () {
-	unsigned c = servers.size();
-	if (c == 0) throw std::runtime_error ("no servers in cluster");
-	if (nextServerIdx >= c) nextServerIdx = 0;
-	return servers [nextServerIdx ++];
+	if (members.empty()) throw std::runtime_error ("no cluster");
+	for (unsigned i = 0; i < members.size(); i++) {
+		Member m = members [nextWrap (members.size(), nextServerIdx)];
+		if (m.role == SERVER || m.role == BOTH) return m.host;
+	}
+	throw std::runtime_error ("no servers in cluster");
 }
 
 /** Return the next N cluster servers in cycle */
@@ -64,14 +72,16 @@ std::vector<remote::Host> cluster::someServers (unsigned n) {
 	return repeat (n, someServer);
 }
 
-static unsigned nextClientIdx;
+static unsigned nextClientIdx = -1;
 
 /** Return the next cluster server in cycle */
 remote::Host cluster::someClient () {
-	unsigned c = clients.size();
-	if (c == 0) throw std::runtime_error ("no clients in cluster");
-	if (nextClientIdx >= c) nextClientIdx = 0;
-	return clients [nextClientIdx ++];
+	if (members.empty()) throw std::runtime_error ("no cluster");
+	for (unsigned i = 0; i < members.size(); i++) {
+		Member m = members [nextWrap (members.size(), nextClientIdx)];
+		if (m.role == CLIENT || m.role == BOTH) return m.host;
+	}
+	throw std::runtime_error ("no clients in cluster");
 }
 
 /** Return the next N cluster clients in cycle */
