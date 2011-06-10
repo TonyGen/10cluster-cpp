@@ -14,13 +14,17 @@ struct Member {
 	remote::Host host;
 	Role role;
 	Member (remote::Host host, Role role) : host(host), role(role) {}
+	Member () {} // for serialization
 };
 
 /** All machines in cluster including self. Each machine may have a client and/or server role. */
 extern std::vector<Member> members;
 
-/** Join cluster of machines where given host is one of them. Join as given role. */
+/** Join cluster of machines where given host is one of them. Join as given role. I must already be listening (remote::listen) */
 void join (Role, remote::Host);
+
+/** Join cluster where I am the first one or others have already joined to me so I know who to tell. I must already be listening (remote::listen) */
+void join (Role);
 
 /** Remove self from cluster of machines */
 void leave ();

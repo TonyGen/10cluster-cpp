@@ -34,6 +34,11 @@ void cluster::join (Role role, remote::Host host) {
 	remote::eval (host, remote::thunk (MFUN(_cluster,newMember), Member (remote::thisHost(), role)));
 }
 
+/** Join cluster where I am the first one or others have already joined to me so I know who to tell */
+void cluster::join (Role role) {
+	join (role, remote::thisHost());
+}
+
 /** Remove self from cluster of machines */
 void leave () {
 	for (std::vector<cluster::Member>::iterator m = cluster::members.begin(); m != cluster::members.end(); ++m)
