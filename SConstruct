@@ -1,7 +1,7 @@
 libname = 'cluster'
 
 lib = SharedLibrary (libname, Glob('*.cpp'),
-	CCFLAGS = ['-g'],
+	CCFLAGS = ['-g', '-rdynamic'],
 	CPPPATH = ['.', '/opt/local/include'],
 	LIBPATH = ['/opt/local/lib'],
 	LIBS = Split ('10util remote boost_serialization-mt') )

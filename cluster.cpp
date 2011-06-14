@@ -55,18 +55,19 @@ void cluster::seedRandom (int seed) {
 }
 
 /** Increment i wrapping when reaching size */
-static unsigned & nextWrap (unsigned size, unsigned &i) {
-	if (i >= size) i = 0; else i++;
-	return i;
+static unsigned nextWrap (unsigned size, volatile unsigned * i) {
+	(*i) ++;
+	if ((*i) >= size) *i = 0;
+	return *i;
 }
 
-static unsigned nextServerIdx = -1;
+static volatile unsigned nextServerIdx = -1;
 
 /** Return the next cluster server in cycle */
 remote::Host cluster::someServer () {
 	if (members.empty()) throw std::runtime_error ("no cluster");
 	for (unsigned i = 0; i < members.size(); i++) {
-		Member m = members [nextWrap (members.size(), nextServerIdx)];
+		Member m = members [nextWrap (members.size(), &nextServerIdx)];
 		if (m.role == SERVER || m.role == BOTH) return m.host;
 	}
 	throw std::runtime_error ("no servers in cluster");
@@ -77,13 +78,13 @@ std::vector<remote::Host> cluster::someServers (unsigned n) {
 	return repeat (n, someServer);
 }
 
-static unsigned nextClientIdx = -1;
+static volatile unsigned nextClientIdx = -1;
 
 /** Return the next cluster server in cycle */
 remote::Host cluster::someClient () {
 	if (members.empty()) throw std::runtime_error ("no cluster");
 	for (unsigned i = 0; i < members.size(); i++) {
-		Member m = members [nextWrap (members.size(), nextClientIdx)];
+		Member m = members [nextWrap (members.size(), &nextClientIdx)];
 		if (m.role == CLIENT || m.role == BOTH) return m.host;
 	}
 	throw std::runtime_error ("no clients in cluster");
