@@ -24,14 +24,14 @@ void _cluster::removeMember (remote::Host host) {
 void _cluster::newMember (cluster::Member newMember) {
 	addMember (newMember); // Add member now so when adding again below it won't mess up iterator
 	for (std::vector<cluster::Member>::iterator m = cluster::members.begin(); m != cluster::members.end(); ++m) {
-		remote::eval (m->host, remote::thunk (MFUN(_cluster,addMember), newMember));
-		remote::eval (newMember.host, remote::thunk (MFUN(_cluster,addMember), *m));
+		remote::eval (m->host, remote::bind (MFUN(_cluster,addMember), newMember));
+		remote::eval (newMember.host, remote::bind (MFUN(_cluster,addMember), *m));
 	}
 }
 
 /** Join cluster of machines where given host is one of them. Join as given role. */
 void cluster::join (Role role, remote::Host host) {
-	remote::eval (host, remote::thunk (MFUN(_cluster,newMember), Member (remote::thisHost(), role)));
+	remote::eval (host, remote::bind (MFUN(_cluster,newMember), Member (remote::thisHost(), role)));
 }
 
 /** Join cluster where I am the first one or others have already joined to me so I know who to tell */
@@ -42,7 +42,7 @@ void cluster::join (Role role) {
 /** Remove self from cluster of machines */
 void leave () {
 	for (std::vector<cluster::Member>::iterator m = cluster::members.begin(); m != cluster::members.end(); ++m)
-		remote::eval (m->host, remote::thunk (MFUN(_cluster,removeMember), remote::thisHost()));
+		remote::eval (m->host, remote::bind (MFUN(_cluster,removeMember), remote::thisHost()));
 	cluster::members.clear();
 }
 
@@ -51,7 +51,7 @@ void _cluster::setRandomSeed (int seed) {srand (seed);}
 /** Tell all machines in cluster to reset its random number generator with given seed */
 void cluster::seedRandom (int seed) {
 	for (std::vector<cluster::Member>::iterator m = cluster::members.begin(); m != cluster::members.end(); ++m)
-		remote::eval (m->host, thunk (MFUN(_cluster,setRandomSeed), seed));
+		remote::eval (m->host, remote::bind (MFUN(_cluster,setRandomSeed), seed));
 }
 
 /** Increment i wrapping when reaching size */
