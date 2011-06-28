@@ -4,7 +4,7 @@
 #include <set>
 #include <cstdlib> // srand
 
-remote::Module _cluster::module ("cluster", "cluster/cluster.h");
+module::Module _cluster::module ("10cluster", "10cluster/cluster.h");
 
 /** All machines in cluster including self. Each machine may have a client and/or server role. */
 std::vector<cluster::Member> cluster::members;

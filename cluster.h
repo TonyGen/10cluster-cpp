@@ -4,7 +4,6 @@
 
 #include <vector>
 #include <10remote/remote.h>
-#include <10util/library.h>
 
 namespace cluster {
 
@@ -64,7 +63,7 @@ template <class Archive> void serialize (Archive & ar, cluster::Member & x, cons
 
 namespace _cluster {
 
-extern remote::Module module;
+extern module::Module module;
 void newMember (cluster::Member);
 void addMember (cluster::Member);
 void removeMember (remote::Host);
