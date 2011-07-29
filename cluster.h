@@ -25,6 +25,12 @@ void join (Role, remote::Host);
 /** Join cluster where I am the first one or others have already joined to me so I know who to tell. I must already be listening (remote::listen) */
 void join (Role);
 
+/** Join cluster of machines where given host is one of them. Join as BOTH client and server. I must already be listening (remote::listen) */
+inline void join (remote::Host host) {join (BOTH, host);}
+
+/** Join cluster where I am the first one or others have already joined to me so I know who to tell. Join as BOTH client and server. I must already be listening (remote::listen) */
+inline void join () {join (BOTH);}
+
 /** Remove self from cluster of machines */
 void leave ();
 
