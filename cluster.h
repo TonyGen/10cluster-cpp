@@ -14,6 +14,8 @@ struct Member {
 	Role role;
 	Member (remote::Host host, Role role) : host(host), role(role) {}
 	Member () {} // for serialization
+	bool isClient () {return role == CLIENT || role == BOTH;}
+	bool isServer () {return role == SERVER || role == BOTH;}
 };
 
 /** All machines in cluster including self. Each machine may have a client and/or server role. */
@@ -36,6 +38,15 @@ void leave ();
 
 /** Tell all machines in cluster to reset its random number generator with given seed */
 void seedRandom (int seed);
+
+/** Return all hosts in cluster whether client or server or both */
+std::vector<remote::Host> hosts ();
+
+/** Return all clients in cluster */
+std::vector<remote::Host> clients ();
+
+/** Return all servers in cluster */
+std::vector<remote::Host> servers ();
 
 /** Return the next client in cluster cycle */
 remote::Host someClient ();

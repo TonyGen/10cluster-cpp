@@ -3,6 +3,7 @@
 #include <10util/unit.h>
 #include <set>
 #include <cstdlib> // srand
+#include <10util/vector.h> // fmap, filter
 
 module::Module _cluster::module ("10cluster", "10cluster/cluster.h");
 
@@ -60,6 +61,19 @@ static unsigned nextWrap (unsigned size, volatile unsigned * i) {
 	if ((*i) >= size) *i = 0;
 	return *i;
 }
+
+static remote::Host _host (cluster::Member x) {return x.host;}
+static bool _isClient (cluster::Member x) {return x.isClient();}
+static bool _isServer (cluster::Member x) {return x.isServer();}
+
+/** Return all hosts in cluster whether client or server or both */
+std::vector<remote::Host> cluster::hosts () {return fmap (_host, members);}
+
+/** Return all clients in cluster */
+std::vector<remote::Host> cluster::clients () {return fmap (_host, filter (_isClient, members));}
+
+/** Return all servers in cluster */
+std::vector<remote::Host> cluster::servers () {return fmap (_host, filter (_isServer, members));}
 
 static volatile unsigned nextServerIdx = -1;
 
